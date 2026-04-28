@@ -10,9 +10,13 @@ Most retail traders fail because they react to noise. Agentic Finance Studio fil
 3. Frictionless Execution: Direct-to-DEX trading via Telegram.
    
 🛠️ Tech Stack & API Integration
+
 SoSoValue API: Powering our "Market Heat Map" and sentiment-based trade triggers.
+
 SoDEX API: Enabling non-custodial, on-chain trade execution directly from the chat.
+
 Backend: Built with Python (FastAPI) and integrated with ElevenLabs for AI-driven voice briefings.
+
 Interface: Telegram Bot API with Telegram Stars integration for native digital payments.
 
 🚀 Key Features
@@ -37,6 +41,7 @@ Whale Inflow Alerts: Real-time monitoring of institutional ETF flows and exchang
 
 Telegram Bot: [t.me/AgenticFinanceBot](https://t.me/AgenticFinanceBot)
 Developer: [fxscalpersignals](https://github.com/fxscalpersignals)
+
 Platform: Built for the SoSoValue & SoDEX Buildathon.
 
 Developed by Agentic Finance Studio | 2026
