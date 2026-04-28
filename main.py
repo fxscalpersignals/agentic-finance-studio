@@ -14,6 +14,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ System Status: Online\n📡 Latency: Optimal")
 
+# The "Whale Alert" Logic
+def check_whale_activity(inflow_data):
+    
+    # If Bitcoin/XRP ETF inflows increase by more than 15% in 24h
+    if inflow_data['daily_change'] > 0.15:
+        return "🚨 WHALE ALERT: Institutional buying detected. Expect volatility."
+    return None
+
 if __name__ == '__main__':
     # Your verified API Token
     TOKEN = '8728186403:AAFnwOiAc6XL1L0T8U3wc1US9iWUkX28IaY'
