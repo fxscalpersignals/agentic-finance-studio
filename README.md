@@ -21,6 +21,7 @@ Live Sentiment Streaming: Real-time XRP and BTC sentiment shifts directly to you
 Alpha Signals: 1-Click trade parameters including dynamic Stop-Loss and Take-Profit levels.
 Agentic Automation: Automated recurring "Sentiment Checks" for long-term holders.
 Voice Briefings: Get your morning market technical setup read to you by our AI agent.
+Whale Inflow Alerts: Real-time monitoring of institutional ETF flows and exchange whale movements to front-run volatility.
 
 📈 Roadmap (Buildathon Season 2)
 
