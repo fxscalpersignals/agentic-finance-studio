@@ -4,41 +4,61 @@ import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
-# Setup Logging
-logging.basicConfig(level=logging.INFO)
+# 1. Setup Logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-# Keys from Vault
+# 2. Get Secrets from GitHub Vault
 TOKEN = os.getenv('TELEGRAM_TOKEN')
 SOSO_API_KEY = os.getenv('SOSO_API_KEY')
 
-# --- NEW: THE DATA FETCHER ---
-def get_xrp_sentiment():
-    url = "https://api.sosovalue.com/v1/asset/sentiment" # Target endpoint
+# 3. Data Fetching Logic
+def get_xrp_data():
+    # Using the standard SoSoValue asset detail endpoint for stable data
+    url = "https://api.sosovalue.com/v1/asset/detail" 
     headers = {"Authorization": f"Bearer {SOSO_API_KEY}"}
     params = {"symbol": "XRP"}
     
     try:
-        response = requests.get(url, headers=headers, params=params)
-        data = response.json()
-        
-        # We look for the "Sentiment Index" or "Inflow" in the response
-        sentiment = data.get('data', {}).get('sentiment', 'No data')
-        inflow = data.get('data', {}).get('inflow_24h', '0')
-        
-        return f"📊 XRP Analysis:\nSentiment: {sentiment}\n24h Inflow: {inflow}M"
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == 200:
+            data = response.json().get('data', {})
+            price = data.get('price', 'N/A')
+            change = data.get('change_24h', '0')
+            
+            # Simple Whale logic: If 24h change is high, flag it
+            whale_msg = ""
+            if abs(float(change)) > 5:
+                whale_msg = "\n🚨 VOLATILITY ALERT: Heavy movement detected!"
+                
+            return f"📊 XRP Status:\nPrice: ${price}\n24h Change: {change}%{whale_msg}"
+        else:
+            return f"❌ API Error: {response.status_code}. Check if API Key is valid."
     except Exception as e:
-        return f"⚠️ Error fetching data: {str(e)}"
+        return f"⚠️ Connection Error: {str(e)}"
 
-# --- COMMANDS ---
+# 4. Bot Commands
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🚀 Agentic Finance Studio is LIVE.\nUse /check to see XRP status.")
+    await update.message.reply_text(
+        "🚀 Agentic Finance Studio Active.\n"
+        "Use /check to get live XRP data."
+    )
 
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    status_message = get_xrp_sentiment()
-    await update.message.reply_text(status_message)
+    await update.message.reply_text("🔍 Fetching live data from SoSoValue...")
+    result = get_xrp_data()
+    await update.message.reply_text(result)
 
+# 5. Run the Bot
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(TOKEN).build()
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CommandHandler('check', check))
-    application.run_polling()
+    if not TOKEN or not SOSO_API_KEY:
+        print("CRITICAL ERROR: Keys missing in GitHub Secrets!")
+    else:
+        app = ApplicationBuilder().token(TOKEN).build()
+        app.add_handler(CommandHandler('start', start))
+        app.add_handler(CommandHandler('check', check))
+        
+        print("Bot is starting... Press Ctrl+C to stop.")
+        app.run_polling()
