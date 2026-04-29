@@ -1,64 +1,38 @@
 import os
 import requests
-import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# 1. Setup Logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+# 1. Get the keys we saved in Back4app
+TOKEN = os.environ.get("TELEGRAM_TOKEN")
+SOSO_API_KEY = os.environ.get("SOSO_API_KEY")
 
-# 2. Get Secrets from GitHub Vault
-TOKEN = os.getenv('TELEGRAM_TOKEN')
-SOSO_API_KEY = os.getenv('SOSO_API_KEY')
+# 2. Define the /start command
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Hello! I am your Finance Bot. Use /check to get market data.")
 
-# 3. Data Fetching Logic
-def get_xrp_data():
-    # Using the standard SoSoValue asset detail endpoint for stable data
-    url = "https://api.sosovalue.com/v1/asset/detail" 
-    headers = {"Authorization": f"Bearer {SOSO_API_KEY}"}
-    params = {"symbol": "XRP"}
+# 3. Define the /check command (using SoSoValue API)
+async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    url = "https://api.sosovalue.xyz/v1/asset/market/current-price?symbol=BTC"
+    headers = {"Authorization": SOSO_API_KEY}
     
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-        if response.status_code == 200:
-            data = response.json().get('data', {})
-            price = data.get('price', 'N/A')
-            change = data.get('change_24h', '0')
-            
-            # Simple Whale logic: If 24h change is high, flag it
-            whale_msg = ""
-            if abs(float(change)) > 5:
-                whale_msg = "\n🚨 VOLATILITY ALERT: Heavy movement detected!"
-                
-            return f"📊 XRP Status:\nPrice: ${price}\n24h Change: {change}%{whale_msg}"
-        else:
-            return f"❌ API Error: {response.status_code}. Check if API Key is valid."
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        price = data.get('data', [{}])[0].get('price', 'N/A')
+        await update.message.reply_text(f"Current BTC Price: ${price}")
     except Exception as e:
-        return f"⚠️ Connection Error: {str(e)}"
+        await update.message.reply_text("Error fetching data. Check your API key!")
 
-# 4. Bot Commands
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🚀 Agentic Finance Studio Active.\n"
-        "Use /check to get live XRP data."
-    )
-
-async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔍 Fetching live data from SoSoValue...")
-    result = get_xrp_data()
-    await update.message.reply_text(result)
-
-# 5. Run the Bot
-if __name__ == '__main__':
-    if not TOKEN or not SOSO_API_KEY:
-        print("CRITICAL ERROR: Keys missing in GitHub Secrets!")
+# 4. The main engine that keeps the bot alive
+if __name__ == "__main__":
+    if not TOKEN:
+        print("Error: TELEGRAM_TOKEN not found!")
     else:
         app = ApplicationBuilder().token(TOKEN).build()
-        app.add_handler(CommandHandler('start', start))
-        app.add_handler(CommandHandler('check', check))
         
-        print("Bot is starting... Press Ctrl+C to stop.")
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("check", check))
+        
+        print("Bot is waking up...")
         app.run_polling()
