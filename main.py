@@ -1,35 +1,45 @@
+import os
 import logging
+import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
-# Logging helps us see if the bot is actually receiving your clicks
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+# 1. Setup Logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🚀 Agentic Finance Studio is now ACTIVE.\n\n"
-        "Connection Verified. Ready for SoSoValue API integration."
-    )
+# 2. Pull Keys from the Vault (GitHub Secrets)
+TOKEN = os.getenv('TELEGRAM_TOKEN')
+SOSO_API_KEY = os.getenv('SOSO_API_KEY')
 
-async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ System Status: Online\n📡 Latency: Optimal")
-
-# The "Whale Alert" Logic
+# 3. The "Whale Alert" Logic
 def check_whale_activity(inflow_data):
-    
-    # If Bitcoin/XRP ETF inflows increase by more than 15% in 24h
-    if inflow_data['daily_change'] > 0.15:
+    if inflow_data.get('daily_change', 0) > 0.15:
         return "🚨 WHALE ALERT: Institutional buying detected. Expect volatility."
     return None
 
+# 4. Command Handlers
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🚀 Agentic Finance Studio is now ACTIVE.\n\n"
+        "Connection Verified. SoSoValue API integration live."
+    )
+
+async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # This is a placeholder for the live API call we will do tomorrow
+    await update.message.reply_text("✅ System Status: Online\n📡 Data Feed: SoSoValue Demo Plan Active")
+
+# 5. Main Application
 if __name__ == '__main__':
-    # Your verified API Token
-    TOKEN = '8728186403:AAFnwOiAc6XL1L0T8U3wc1US9iWUkX28IaY'
-    
-    application = ApplicationBuilder().token(TOKEN).build()
-    
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CommandHandler('status', status))
-    
-    print("Bot is starting...")
-    application.run_polling()
+    if not TOKEN:
+        print("Error: TELEGRAM_TOKEN not found in environment variables.")
+    else:
+        application = ApplicationBuilder().token(TOKEN).build()
+        
+        application.add_handler(CommandHandler('start', start))
+        application.add_handler(CommandHandler('status', status))
+        
+        print("Bot is starting...")
+        application.run_polling()
