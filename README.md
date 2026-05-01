@@ -15,7 +15,7 @@ SoSoValue API: Powering our "Market Heat Map" and sentiment-based trade triggers
 
 SoDEX API: Enabling non-custodial, on-chain trade execution directly from the chat.
 
-Backend: Built with Python (FastAPI) and integrated with ElevenLabs for AI-driven voice briefings.
+Backend: Built with Python (Asynchronous Python) and integrated with ElevenLabs for AI-driven voice briefings.
 
 Interface: Telegram Bot API with Telegram Stars integration for native digital payments.
 
