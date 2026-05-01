@@ -31,7 +31,7 @@ Voice Briefings: Get your morning market technical setup read to you by our AI a
 
 Whale Inflow Alerts: Real-time monitoring of institutional ETF flows and exchange whale movements to front-run volatility.
 
-📈 Roadmap (Buildathon Season 2)
+📈 Roadmap
 
 - Wave 1 (Concept): Architecture design and API handshake.
 - Wave 2 (MVP): Telegram Bot integration with SoSoValue data streams.
