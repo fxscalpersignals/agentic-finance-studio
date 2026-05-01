@@ -53,10 +53,14 @@ Agentic Finance Studio solves this by combining:
   Clean and instant responses
 
 📦 Installation
+# Clone the repository
+git clone https://github.com/fxscalpersignals/agentic-finance-studio.git
 
-bash
-Clone the repository
-git clone [https://github.com/fxscalpersignals/agentic-finance-studio.git](https://github.com/fxscalpersignals/agentic-finance-studio.git)
+# Enter the directory
+cd agentic-finance-studio
+
+# Install dependencies
+pip install -r requirements.txt
 
 
 🔐 Environment Variables
