@@ -25,6 +25,12 @@ Agentic Finance Studio solves this by combining:
 3. Actionable Alerts
    Simple insights delivered via Telegram in real-time
    
+🏗️ Modular Architecture (The Stack)
+To ensure high availability and professional-grade performance, the studio is built on a decoupled, three-tier stack:
+ 1. Intelligence Layer: Utilizes the SoSoValue API for real-time institutional sentiment indices and news filtering.
+ 2. Signal Engine: Powered by Asynchronous Python for non-blocking technical analysis (Quant TA) and institutional Whale Alert monitoring.
+ 3. Execution Layer: Integrated
+   
 🛠️ Tech Stack
 
 - Backend: Python (Async)
