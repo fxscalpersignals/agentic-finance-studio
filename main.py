@@ -16,7 +16,6 @@ logging.basicConfig(
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
-# 🔁 SYMBOL MAP
 COINGECKO_IDS = {
     "btc": "bitcoin",
     "eth": "ethereum",
@@ -28,10 +27,11 @@ COINGECKO_IDS = {
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🚀 *Agentic Finance Studio Terminal*\n\n"
-        "Live Crypto Price Checker\n\n"
+        "Live Crypto Intelligence Bot\n\n"
         "*Commands:*\n"
-        "/btc  /eth  /xrp  /sol\n"
+        "/btc /eth /xrp /sol\n"
         "/price <symbol>\n"
+        "/signal\n"
         "/whale\n"
         "/test",
         parse_mode='Markdown'
@@ -39,139 +39,146 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 🧪 TEST
 async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ Bot is working perfectly!")
+    await update.message.reply_text("✅ Bot is running perfectly!")
 
-# 🐳 WHALE
+# 🐳 WHALE ALERT (BTC + XRP)
 async def whale_alert(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🚨 *WHALE ALERT DETECTED*\n\n"
-        "Large movements detected in *BTC* and *XRP*",
-        parse_mode='Markdown'
-    )
+    try:
+        msg = await update.message.reply_text("🐳 Scanning market activity...")
 
-# 🎯 FORMAT PRICE
+        btc = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+            timeout=10
+        )
+        xrp = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd",
+            timeout=10
+        )
+
+        if btc.status_code != 200 or xrp.status_code != 200:
+            await msg.edit_text("❌ Failed to fetch market data.")
+            return
+
+        btc_price = float(btc.json()["bitcoin"]["usd"])
+        xrp_price = float(xrp.json()["ripple"]["usd"])
+
+        btc_signal = "📈 Bullish" if btc_price > 70000 else "📉 Bearish" if btc_price < 60000 else "🟡 Ranging"
+        xrp_signal = "🚨 Accumulation" if xrp_price > 1.35 else "⚠️ Dumping" if xrp_price < 1.20 else "🟡 Stable"
+
+        await msg.edit_text(
+            f"🐳 *WHALE REPORT*\n\n"
+            f"BTC: ${btc_price:,.0f} → {btc_signal}\n\n"
+            f"XRP: ${xrp_price:.4f} → {xrp_signal}",
+            parse_mode='Markdown'
+        )
+
+    except Exception as e:
+        logging.error(e)
+        await update.message.reply_text("⚠️ Whale check failed.")
+
+# 📊 SIGNAL (NEW — IMPORTANT FOR BUILDATHON)
+async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        msg = await update.message.reply_text("📡 Generating BTC signal...")
+
+        r = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+            timeout=10
+        )
+
+        if r.status_code != 200:
+            await msg.edit_text("❌ Failed to fetch data.")
+            return
+
+        price = float(r.json()["bitcoin"]["usd"])
+
+        entry = price
+        tp = price * 1.015
+        sl = price * 0.985
+
+        await msg.edit_text(
+            f"📊 *BTC SIGNAL*\n\n"
+            f"💰 Price: ${price:,.0f}\n"
+            f"🎯 Entry: ${entry:,.0f}\n"
+            f"🏆 TP: ${tp:,.0f}\n"
+            f"🛑 SL: ${sl:,.0f}\n"
+            f"📈 Bias: Bullish",
+            parse_mode='Markdown'
+        )
+
+    except Exception as e:
+        logging.error(e)
+        await update.message.reply_text("⚠️ Signal error.")
+
+# 🎯 FORMAT
 def format_price(price):
     if price < 1:
         return f"{price:.6f}"
     elif price < 100:
         return f"{price:.2f}"
-    else:
-        return f"{price:,.0f}"
+    return f"{price:,.0f}"
 
-# 📊 GET PRICE
+# 📈 PRICE ENGINE
 async def get_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # Detect symbol
         if context.args:
-            symbol = context.args[0].lower().strip()
+            symbol = context.args[0].lower()
         else:
-            symbol = update.message.text.replace('/', '').strip().lower()
-
-        if not symbol:
-            await update.message.reply_text("❌ Example: /btc")
-            return
+            symbol = update.message.text.replace('/', '').lower()
 
         display = symbol.upper()
         msg = await update.message.reply_text(f"🔍 Fetching {display}...")
 
-        # =========================
-        # 1. SOSOVALUE (PRIMARY)
-        # =========================
+        # SoSo (Primary)
         if SOSO_API_KEY:
             try:
                 url = f"https://openapi.sosovalue.com/openapi/v1/asset/market/current-price?symbol={display}"
-
-                headers = {
-                    "Authorization": f"Bearer {SOSO_API_KEY}",
-                    "x-soso-api-key": SOSO_API_KEY,
-                    "User-Agent": "AgenticFinanceBot/1.0"
-                }
-
-                r = requests.get(url, headers=headers, timeout=12)
+                headers = {"Authorization": f"Bearer {SOSO_API_KEY}"}
+                r = requests.get(url, headers=headers, timeout=10)
 
                 if r.status_code == 200:
                     data = r.json()
-
                     if data.get("data"):
-                        item = data["data"][0] if isinstance(data["data"], list) else data["data"]
-                        price = float(item.get("price", 0))
+                        item = data["data"][0]
+                        price = float(item["price"])
+                        await msg.edit_text(f"📊 {display}\n💰 ${format_price(price)}\n🔌 SoSoValue")
+                        return
+            except:
+                pass
 
-                        if price > 0:
-                            formatted = format_price(price)
-
-                            await msg.edit_text(
-                                f"📊 *{display}*\n"
-                                f"💰 ${formatted} USD\n"
-                                f"🔌 SoSoValue",
-                                parse_mode='Markdown'
-                            )
-                            return
-                else:
-                    logging.warning(f"SoSo status: {r.status_code}")
-
-            except Exception as e:
-                logging.warning(f"SoSo failed: {e}")
-
-        # =========================
-        # 2. COINGECKO (FALLBACK)
-        # =========================
+        # CoinGecko
         try:
-            cg_id = COINGECKO_IDS.get(symbol, symbol)
-
+            cg = COINGECKO_IDS.get(symbol, symbol)
             r = requests.get(
-                f"https://api.coingecko.com/api/v3/simple/price?ids={cg_id}&vs_currencies=usd",
-                headers=HEADERS,
+                f"https://api.coingecko.com/api/v3/simple/price?ids={cg}&vs_currencies=usd",
                 timeout=10
             )
-
             if r.status_code == 200:
                 data = r.json()
-
-                if cg_id in data:
-                    price = float(data[cg_id]["usd"])
-                    formatted = format_price(price)
-
-                    await msg.edit_text(
-                        f"📊 *{display}*\n"
-                        f"💰 ${formatted} USD\n"
-                        f"🔗 CoinGecko",
-                        parse_mode='Markdown'
-                    )
+                if cg in data:
+                    price = data[cg]["usd"]
+                    await msg.edit_text(f"📊 {display}\n💰 ${format_price(price)}\n🔗 CoinGecko")
                     return
+        except:
+            pass
 
-        except Exception as e:
-            logging.warning(f"CoinGecko failed: {e}")
-
-        # =========================
-        # 3. BINANCE (LAST)
-        # =========================
+        # Binance
         try:
             r = requests.get(
                 f"https://api.binance.com/api/v3/ticker/price?symbol={display}USDT",
-                headers=HEADERS,
                 timeout=10
             )
-
             if r.status_code == 200:
                 price = float(r.json()["price"])
-                formatted = format_price(price)
-
-                await msg.edit_text(
-                    f"📊 *{display}*\n"
-                    f"💰 ${formatted} USD\n"
-                    f"🔗 Binance",
-                    parse_mode='Markdown'
-                )
+                await msg.edit_text(f"📊 {display}\n💰 ${format_price(price)}\n🔗 Binance")
                 return
+        except:
+            pass
 
-        except Exception as e:
-            logging.warning(f"Binance failed: {e}")
-
-        # ❌ FINAL FAIL
-        await msg.edit_text(f"❌ Could not get price for *{display}*.")
+        await msg.edit_text(f"❌ Could not fetch {display}")
 
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logging.error(e)
         await update.message.reply_text("⚠️ Error occurred.")
 
 # 🧠 MAIN
@@ -181,14 +188,14 @@ if __name__ == "__main__":
 
     app = ApplicationBuilder().token(TOKEN).build()
 
-    # COMMANDS
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("test", test))
     app.add_handler(CommandHandler("whale", whale_alert))
+    app.add_handler(CommandHandler("signal", signal))
     app.add_handler(CommandHandler("price", get_price))
 
     for coin in ["btc", "eth", "xrp", "sol"]:
         app.add_handler(CommandHandler(coin, get_price))
 
-    print("🚀 Agentic Finance Studio Bot started!")
+    print("🚀 Bot running...")
     app.run_polling(drop_pending_updates=True)
