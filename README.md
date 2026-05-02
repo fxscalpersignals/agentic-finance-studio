@@ -92,24 +92,41 @@ python main.py
 /price <sym>  - Custom coin
 /whale        - Whale alert (MVP)
 
-📈 Roadmap
+📈 Roadmap: The 3 Waves
 
-✅ Wave 1 — MVP
+🌊 Wave 1: The Foundation (Active)
 
-- Telegram bot live
-- Multi-API pricing
-- Basic whale alerts
+Goal: Deploy a functional, real-time signal engine for a "One-Person Finance Business."
+- Core Engine: Asynchronous Python Telegram bot running 24/7 on JustRunMy.App
+- Market Data: Live price tracking with multi-API fallback (SoSoValue → CoinGecko → Binance)
+- Assets Covered: BTC, XRP, SOL
+- Whale Monitoring (MVP): Price-action-based detection of abnormal movements (expandable to on-chain tracking)
+- Security: Environment Variables for all API keys (no hardcoded secrets)
 
-🚧 Wave 2 — Intelligence
+🌊 Wave 2: Institutional Intelligence
 
-- Real sentiment scoring
-- Trade signals (Entry, TP, SL)
+Goal: Integrate SoSoValue data to enable sentiment-driven trading insights.
+- SSI Integration: Real-time SoSoValue Sentiment Index (Fear vs Greed layer)
+- Sector Intelligence: Monitoring sectors like PayFi, AI, and RWA via SoSoValue indices
+- Signal Layer: Combine sentiment + price action to generate Entry, TP, and SL signals
+- Smart Alerts: Automated Telegram notifications (no command required)
 
-🔮 Wave 3 — Execution
+🌊 Wave 3: The Execution Layer (Final Goal)
 
-- SoDEX integration
-- One-click trades
-- Automated alerts
+Goal: Enable seamless transition from signal → execution using SoDEX.
+- On-Chain Trading: Direct trade execution via SoDEX SDK
+- Yield Intelligence: Alerts for opportunities like USSI and MAG7.ssi
+- Automation: End-to-end pipeline (Signal → Decision → Execution)
+- Monetization: Telegram Stars integration for premium features
+
+🧠 Long-Term Vision
+
+To evolve Agentic Finance Studio into a fully autonomous trading assistant that:
+- Understands market sentiment
+- Generates high-probability signals
+- Executes trades non-custodially
+- Operates as a personal financial agent
+
 
 ⚠️ Disclaimer
 
